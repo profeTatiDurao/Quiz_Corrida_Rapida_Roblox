@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Roblox Studio - Copa & Teletransporte!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-stadium: #064e3b;
+            --card-bg: #ffffff;
+            --card-mint: #ecfdf5;
+            --green-pitch: #16a34a;
+            --yellow-card: #facc15;
+            --sky-blue: #0284c7;
+            --orange-goal: #f97316;
+            --red-err: #ef4444;
+            --text-dark: #0f172a;
+            --text-muted: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-stadium);
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.04) 0px,
+                    rgba(255, 255, 255, 0.04) 60px,
+                    rgba(0, 0, 0, 0.06) 60px,
+                    rgba(0, 0, 0, 0.06) 120px
+                ),
+                radial-gradient(circle at 20% 15%, rgba(250, 204, 21, 0.25), transparent 40%),
+                radial-gradient(circle at 80% 85%, rgba(56, 189, 248, 0.25), transparent 40%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 30px 15px 70px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 740px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 28px;
+            padding: 32px;
+            border: 5px solid var(--yellow-card);
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45), 0 0 28px rgba(250, 204, 21, 0.25);
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .tag-futebol {
+            display: inline-block;
+            background: linear-gradient(90deg, var(--green-pitch), var(--sky-blue));
+            color: #ffffff;
+            padding: 6px 18px;
+            border-radius: 999px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+        }
+
+        h1 {
+            font-size: 2.35rem;
+            color: var(--green-pitch);
+            text-shadow: 2px 2px 0px var(--yellow-card);
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .subtitulo {
+            color: var(--text-muted);
+            font-size: 1.08rem;
+            font-weight: 500;
+            max-width: 570px;
+            margin: 0 auto;
+        }
+
+        /* Animações */
+        @keyframes entradaCard {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes tremerErro {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        @keyframes pularAcerto {
+            0% { transform: scale(1); }
+            45% { transform: scale(1.025); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: var(--card-mint);
+            border: 3px solid #bbf7d0;
+            border-left: 9px solid var(--green-pitch);
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 22px;
+            opacity: 0;
+            animation: entradaCard 0.5s ease forwards;
+            transition: all 0.25s ease;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.1s; border-left-color: var(--green-pitch); }
+        .pergunta:nth-child(2) { animation-delay: 0.2s; border-left-color: var(--sky-blue); }
+        .pergunta:nth-child(3) { animation-delay: 0.3s; border-left-color: var(--orange-goal); }
+        .pergunta:nth-child(4) { animation-delay: 0.4s; border-left-color: #eab308; }
+
+        .pergunta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(22, 163, 74, 0.16);
+        }
+
+        .pergunta.card-correto {
+            background: #dcfce7;
+            border-color: #22c55e;
+            border-left-color: #16a34a;
+            animation: pularAcerto 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            background: #fef2f2;
+            border-color: var(--red-err);
+            border-left-color: var(--red-err);
+            animation: tremerErro 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            background: #fefce8;
+            border-color: var(--yellow-card);
+            border-left-color: #eab308;
+        }
+
+        .enunciado {
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 14px;
+            line-height: 1.45;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 700;
+        }
+
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            padding: 12px 15px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-size: 1.04rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        label.opcao:hover {
+            background: #f0fdf4;
+            border-color: var(--green-pitch);
+            transform: translateX(5px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--green-pitch);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Caixa de Código Lua */
+        .code-box {
+            background: #0f172a;
+            color: #f8fafc;
+            border: 3px solid var(--sky-blue);
+            border-radius: 16px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.9;
+            overflow-x: auto;
+        }
+
+        .c-kw { color: #f472b6; }
+        .c-fn { color: #38bdf8; }
+        .c-str { color: #fde047; }
+        .c-com { color: #94a3b8; font-style: italic; }
+
+        .code-input {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1e293b;
+            border: 2px dashed var(--yellow-card);
+            color: #4ade80;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            width: 145px;
+            text-align: center;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: #38bdf8;
+            background: #020617;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+        }
+
+        /* Botão 3D */
+        .btn-area {
+            text-align: center;
+            margin-top: 26px;
+        }
+
+        .btn-corrigir {
+            background: linear-gradient(180deg, #22c55e, #15803d);
+            color: #ffffff;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            padding: 16px 38px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 7px 0 #14532d, 0 14px 25px rgba(21, 128, 61, 0.35);
+            transition: all 0.15s ease;
+        }
+
+        .btn-corrigir:hover {
+            filter: brightness(1.06);
+            transform: translateY(-2px);
+            box-shadow: 0 9px 0 #14532d, 0 18px 28px rgba(21, 128, 61, 0.45);
+        }
+
+        .btn-corrigir:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #14532d;
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 12px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: 1.02rem;
+            font-weight: 600;
+        }
+
+        .correto {
+            background: #dcfce7;
+            color: #15803d;
+            border: 2px solid #86efac;
+        }
+
+        .errado {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 2px solid #fca5a5;
+        }
+
+        .neutro {
+            background: #fef9c3;
+            color: #a16207;
+            border: 2px solid #fde047;
+        }
+
+        /* Resultado */
+        #resultado {
+            margin-top: 28px;
+            padding: 24px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #dcfce7, #fef9c3);
+            border: 4px solid var(--green-pitch);
+            text-align: center;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #15803d;
+            display: none;
+            animation: entradaCard 0.45s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 18px;
+            background: #f8fafc;
+            border: 2px dashed var(--sky-blue);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            display: none;
+        }
+
+        #linkRespostas a {
+            color: var(--sky-blue);
+            font-weight: 700;
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copiar {
+            background: var(--yellow-card);
+            color: #0f172a;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #ca8a04;
+        }
+
+        .btn-copiar:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #ca8a04;
+        }
+
+        #gol-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 650px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.85rem; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="gol-canvas"></canvas>
+
+    <div class="container">
+        <header class="quiz-header">
+            <span class="tag-futebol">⚽ ROBLOX STUDIO • COPA & PORTAL</span>
+            <h1>Futebol Gigante & Teletransporte!</h1>
+            <p class="subtitulo">
+                Hora do apito! Teste o que você aprendeu sobre o portal para <code>SpawnPista2</code>, chão que quebra as juntas, objetos gigantes e corrida turbo! 🏟️
+            </p>
+        </header>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) 🌀 Quando o jogador encosta no portal da pista, o script procura a peça <code>SpawnPista2</code> usando <code>WaitForChild("SpawnPista2")</code>. Para que serve esse comando?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> Para esperar a parte <code>SpawnPista2</code> carregar no jogo antes de teletransportar o personagem, evitando erro se ela demorar um pouquinho.</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> Para apagar o campo de futebol inteiro assim que o jogo começa.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> Para transformar a bola gigante em um carro de corrida.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> Para deixar o jogador invisível dentro do gol.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) 🚀 [COMPLETE O CÓDIGO] Depois de achar o <code>HumanoidRootPart</code> do personagem, qual função usamos no script para levar ele até a posição (<code>Position</code>) de <code>destino</code>?</p>
+                <div class="code-box">
+                    <span class="c-kw">if</span> personagem <span class="c-kw">and</span> personagem:<span class="c-fn">FindFirstChild</span>(<span class="c-str">"HumanoidRootPart"</span>) <span class="c-kw">then</span><br>
+                    &nbsp;&nbsp;personagem:<input type="text" class="code-input" id="q2_input" placeholder="função" autocomplete="off">(destino.Position)<br>
+                    <span class="c-kw">end</span>
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) 🥅 Na nova pista de futebol, temos bolas e traves gigantes, chão que quebra as juntas se você pisar errado e super velocidade ao passar pela fita. O que acontece ao encostar no chão que quebra as juntas?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> O personagem ganha um chute super forte e marca gol de longe.</label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> As juntas do personagem são quebradas (<code>BreakJoints()</code>) e ele é eliminado para tentar a corrida de novo.</label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> A velocidade dele cai para zero para sempre.</label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> Ele é teletransportado de volta para a primeira corrida.</label>
+            </div>
+
+            <!-- Pergunta 4 (Completar Código) -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) ⚡ [COMPLETE O CÓDIGO] Quando o jogador passa pela fita da corrida de futebol, ele ganha super velocidade! Complete o evento que detecta quando o jogador encosta na fita:</p>
+                <div class="code-box">
+                    fita.<input type="text" class="code-input" id="q4_input" placeholder="evento" autocomplete="off">:<span class="c-fn">Connect</span>(<span class="c-kw">function</span>(hit) <span class="c-com">-- Passou pela fita!</span>
+                </div>
+            </div>
+
+            <div class="btn-area">
+                <button type="button" class="btn-corrigir" onclick="corrigir()">⚽ Apitar & Ver Minha Nota! ⚽</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "a" },
+                q2: { tipo: "text",  resposta: "moveto" },
+                q3: { tipo: "radio", resposta: "b" },
+                q4: { tipo: "text",  resposta: "touched" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else {
+                    const inputEl = document.getElementById(q + "_input");
+                    const limpo = inputEl.value.trim().toLowerCase().replace(/[:();"]/g, "");
+                    respostaAluno = limpo === "" ? "nao_respondeu" : limpo;
+                    acertou = limpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "🟨 <b>Cartão amarelo!</b> Você não respondeu essa questão.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "⚽ <b>GOLAÇO!</b> Resposta certinha!";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let certaTexto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                certaTexto = inp.parentNode.textContent.trim();
+                            }
+                        });
+                        feedback.innerHTML = `😅 <b>Foi na trave!</b> A resposta certa era:<br>👉 ${certaTexto}`;
+                    } else {
+                        const exibicao = q === "q2" ? "MoveTo" : "Touched";
+                        feedback.innerHTML = `😅 <b>Foi na trave!</b> O código certo era: <code>${exibicao}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `🏆 CAMPEÃO DA COPA! (${pontos} de ${total})<br><span style="font-size:1.05rem; color:#0f172a;">Você dominou o teletransporte e a pista de futebol! ⚽🔥</span>`;
+                comemorarGol();
+            } else if (pontos >= 2) {
+                areaResultado.innerHTML = `⚡ JOGOU DEMAIS! (${pontos} de ${total})<br><span style="font-size:1.05rem; color:#0f172a;">Dá uma olhada nas dicas acima e tenta fazer ${total} de ${total}!</span>`;
+                comemorarGol();
+            } else {
+                areaResultado.innerHTML = `🏟️ HORA DO TREINO! (${pontos} de ${total})<br><span style="font-size:1.05rem; color:#0f172a;">Leia as respostas certas em vermelho e tente de novo!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const link = window.location.origin + window.location.pathname + "?" + params.join("&");
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copiar" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copiar");
+                btn.textContent = "✅ Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2200);
+            });
+        }
+
+        function comemorarGol() {
+            const canvas = document.getElementById("gol-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cores = ["#22c55e", "#facc15", "#38bdf8", "#ffffff", "#f97316"];
+            const pecas = Array.from({ length: 85 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 6,
+                h: Math.random() * 7 + 5,
+                vy: Math.random() * 4 + 2.5,
+                vx: (Math.random() - 0.5) * 3,
+                rot: Math.random() * 360,
+                vRot: (Math.random() - 0.5) * 8,
+                color: cores[Math.floor(Math.random() * cores.length)]
+            }));
+
+            let frames = 0;
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pecas.forEach(p => {
+                    p.y += p.vy;
+                    p.x += p.vx;
+                    p.rot += p.vRot;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                });
+                frames++;
+                if (frames < 140) {
+                    requestAnimationFrame(loop);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            loop();
+        }
+    </script>
+
+</body>
+</html>

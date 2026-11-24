@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Roblox Studio - Sons, TouchEnded & Portal!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-studio: #1e1b4b;
+            --card-bg: #ffffff;
+            --card-soft: #eef2ff;
+            --pink-pop: #ec4899;
+            --blue-pop: #3b82f6;
+            --purple-pop: #8b5cf6;
+            --yellow-pop: #facc15;
+            --green-ok: #22c55e;
+            --red-err: #ef4444;
+            --text-dark: #0f172a;
+            --text-muted: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: var(--bg-studio);
+            background-image:
+                radial-gradient(circle at 15% 20%, rgba(236, 72, 153, 0.32), transparent 40%),
+                radial-gradient(circle at 85% 25%, rgba(59, 130, 246, 0.35), transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(250, 204, 21, 0.24), transparent 45%),
+                radial-gradient(rgba(255, 255, 255, 0.14) 2px, transparent 2px);
+            background-size: 100% 100%, 100% 100%, 100% 100%, 32px 32px;
+            color: var(--text-dark);
+            min-height: 100vh;
+            padding: 30px 15px 70px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 740px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 28px;
+            padding: 32px;
+            border: 5px solid var(--yellow-pop);
+            box-shadow: 0 18px 42px rgba(0, 0, 0, 0.48), 0 0 32px rgba(59, 130, 246, 0.3);
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .tag-som {
+            display: inline-block;
+            background: linear-gradient(90deg, var(--pink-pop), var(--blue-pop));
+            color: #ffffff;
+            padding: 6px 18px;
+            border-radius: 999px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        h1 {
+            font-size: 2.35rem;
+            color: var(--blue-pop);
+            text-shadow: 2px 2px 0px var(--yellow-pop);
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .subtitulo {
+            color: var(--text-muted);
+            font-size: 1.08rem;
+            font-weight: 500;
+            max-width: 580px;
+            margin: 0 auto;
+        }
+
+        /* Animações */
+        @keyframes entradaDivertida {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes tremerErro {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        @keyframes pularAcerto {
+            0% { transform: scale(1); }
+            45% { transform: scale(1.025); }
+            100% { transform: scale(1); }
+        }
+
+        .pergunta {
+            background: var(--card-soft);
+            border: 3px solid #c7d2fe;
+            border-left: 9px solid var(--blue-pop);
+            border-radius: 20px;
+            padding: 22px;
+            margin-bottom: 22px;
+            opacity: 0;
+            animation: entradaDivertida 0.5s ease forwards;
+            transition: all 0.25s ease;
+        }
+
+        .pergunta:nth-child(1) { animation-delay: 0.1s; border-left-color: var(--pink-pop); }
+        .pergunta:nth-child(2) { animation-delay: 0.2s; border-left-color: var(--blue-pop); }
+        .pergunta:nth-child(3) { animation-delay: 0.3s; border-left-color: var(--purple-pop); }
+        .pergunta:nth-child(4) { animation-delay: 0.4s; border-left-color: #eab308; }
+
+        .pergunta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(59, 130, 246, 0.16);
+        }
+
+        .pergunta.card-correto {
+            background: #f0fdf4;
+            border-color: var(--green-ok);
+            border-left-color: #16a34a;
+            animation: pularAcerto 0.4s ease;
+        }
+
+        .pergunta.card-errado {
+            background: #fef2f2;
+            border-color: var(--red-err);
+            border-left-color: var(--red-err);
+            animation: tremerErro 0.4s ease;
+        }
+
+        .pergunta.card-neutro {
+            background: #fefce8;
+            border-color: var(--yellow-pop);
+            border-left-color: #eab308;
+        }
+
+        .enunciado {
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 14px;
+            line-height: 1.45;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 700;
+        }
+
+        label.opcao {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            padding: 12px 15px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-size: 1.04rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        label.opcao:hover {
+            background: #eff6ff;
+            border-color: var(--blue-pop);
+            transform: translateX(5px);
+        }
+
+        input[type="radio"] {
+            accent-color: var(--pink-pop);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* Caixa de Código Lua */
+        .code-box {
+            background: #0f172a;
+            color: #f8fafc;
+            border: 3px solid var(--purple-pop);
+            border-radius: 16px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.9;
+            overflow-x: auto;
+        }
+
+        .c-kw { color: #f472b6; }
+        .c-fn { color: #38bdf8; }
+        .c-str { color: #fde047; }
+        .c-com { color: #94a3b8; font-style: italic; }
+
+        .code-input {
+            font-family: 'JetBrains Mono', monospace;
+            background: #1e293b;
+            border: 2px dashed #facc15;
+            color: #4ade80;
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            width: 155px;
+            text-align: center;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .code-input:focus {
+            border-style: solid;
+            border-color: #38bdf8;
+            background: #020617;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+        }
+
+        /* Botão 3D */
+        .btn-area {
+            text-align: center;
+            margin-top: 26px;
+        }
+
+        .btn-corrigir {
+            background: linear-gradient(180deg, #ec4899, #be185d);
+            color: #ffffff;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            padding: 16px 38px;
+            border: none;
+            border-radius: 999px;
+            cursor: pointer;
+            box-shadow: 0 7px 0 #831843, 0 14px 25px rgba(190, 24, 93, 0.35);
+            transition: all 0.15s ease;
+        }
+
+        .btn-corrigir:hover {
+            filter: brightness(1.06);
+            transform: translateY(-2px);
+            box-shadow: 0 9px 0 #831843, 0 18px 28px rgba(190, 24, 93, 0.45);
+        }
+
+        .btn-corrigir:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #831843;
+        }
+
+        /* Feedbacks */
+        .feedback {
+            margin-top: 12px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: 1.02rem;
+            font-weight: 600;
+        }
+
+        .correto {
+            background: #dcfce7;
+            color: #15803d;
+            border: 2px solid #86efac;
+        }
+
+        .errado {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 2px solid #fca5a5;
+        }
+
+        .neutro {
+            background: #fef9c3;
+            color: #a16207;
+            border: 2px solid #fde047;
+        }
+
+        /* Resultado */
+        #resultado {
+            margin-top: 28px;
+            padding: 24px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #fce7f3, #dbeafe);
+            border: 4px solid var(--blue-pop);
+            text-align: center;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #1d4ed8;
+            display: none;
+            animation: entradaDivertida 0.45s ease;
+        }
+
+        #linkRespostas {
+            margin-top: 18px;
+            background: #f8fafc;
+            border: 2px dashed var(--purple-pop);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            word-break: break-all;
+            display: none;
+        }
+
+        #linkRespostas a {
+            color: var(--blue-pop);
+            font-weight: 700;
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .btn-copiar {
+            background: var(--yellow-pop);
+            color: #0f172a;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 999px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #ca8a04;
+        }
+
+        .btn-copiar:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #ca8a04;
+        }
+
+        #som-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        @media (max-width: 650px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.85rem; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="som-canvas"></canvas>
+
+    <div class="container">
+        <header class="quiz-header">
+            <span class="tag-som">🔊 ROBLOX STUDIO • SONS, TOUCHENDED & PORTAL</span>
+            <h1>Sons ao Tocar & SpawnPista4!</h1>
+            <p class="subtitulo">
+                Bora testar o que você aprendeu sobre o portal para <code>SpawnPista4</code>, tocar <code>SomInstrumento</code> ao encostar e parar quando não tiver mais ninguém pisando! 🎶🐾
+            </p>
+        </header>
+
+        <form id="quizForm">
+
+            <!-- Pergunta 1 -->
+            <div class="pergunta" id="q1box">
+                <p class="enunciado">1) 👣 Usamos a tabela <code>partesTocando</code> e o evento <code>TouchEnded</code> para saber quando alguém tira o pé do instrumento ou animal. Por que verificamos <code>next(partesTocando) == nil</code> antes de parar o som?</p>
+                <label class="opcao"><input type="radio" name="q1" value="a"> Para só parar o som quando <strong>nenhuma parte do corpo</strong> estiver mais encostando na peça (evitando cortar o som se outra parte ainda estiver tocando).</label>
+                <label class="opcao"><input type="radio" name="q1" value="b"> Para deixar o som tocando para sempre mesmo depois que todo mundo sai de perto.</label>
+                <label class="opcao"><input type="radio" name="q1" value="c"> Para teletransportar o jogador de volta para o início do jogo.</label>
+                <label class="opcao"><input type="radio" name="q1" value="d"> Para apagar a peça <code>SpawnPista4</code> do mapa.</label>
+            </div>
+
+            <!-- Pergunta 2 (Completar Código) -->
+            <div class="pergunta" id="q2box">
+                <p class="enunciado">2) 🌀 [COMPLETE O CÓDIGO] Criamos a parte de destino <code>SpawnPista4</code> no novo local. Complete o nome da peça dentro de <code>WaitForChild(...)</code>:</p>
+                <div class="code-box">
+                    <span class="c-kw">local</span> portal1 = script.Parent<br>
+                    <span class="c-kw">local</span> destino = game.Workspace:<span class="c-fn">WaitForChild</span>(<span class="c-str">"<input type="text" class="code-input" id="q2_input" placeholder="SpawnPista..." autocomplete="off">"</span>) <span class="c-com">-- Destino da Pista 4!</span>
+                </div>
+            </div>
+
+            <!-- Pergunta 3 -->
+            <div class="pergunta" id="q3box">
+                <p class="enunciado">3) 🎵 Colocamos um áudio dentro da parte tocável, renomeamos para <code>SomInstrumento</code> e pegamos ele com <code>instrumento:WaitForChild("SomInstrumento")</code>. Quando o personagem encosta e o som ainda não está tocando, qual método usamos para tocar?</p>
+                <label class="opcao"><input type="radio" name="q3" value="a"> <code>som:Play()</code></label>
+                <label class="opcao"><input type="radio" name="q3" value="b"> <code>som:Destroy()</code></label>
+                <label class="opcao"><input type="radio" name="q3" value="c"> <code>som:Anchored()</code></label>
+                <label class="opcao"><input type="radio" name="q3" value="d"> <code>som:Clone()</code></label>
+            </div>
+
+            <!-- Pergunta 4 (Completar Código) -->
+            <div class="pergunta" id="q4box">
+                <p class="enunciado">4) 🛑 [COMPLETE O CÓDIGO] Quando a lista <code>partesTocando</code> fica vazia (ninguém mais está encostando), qual método usamos em <code>som</code> para parar o áudio?</p>
+                <div class="code-box">
+                    <span class="c-kw">if</span> <span class="c-fn">next</span>(partesTocando) == <span class="c-kw">nil</span> <span class="c-kw">then</span><br>
+                    &nbsp;&nbsp;som:<input type="text" class="code-input" id="q4_input" placeholder="método" autocomplete="off">() <span class="c-com">-- Ninguém mais tocando: para o som!</span><br>
+                    <span class="c-kw">end</span>
+                </div>
+            </div>
+
+            <div class="btn-area">
+                <button type="button" class="btn-corrigir" onclick="corrigir()">🔊 Ver Minha Pontuação! 🔊</button>
+            </div>
+
+        </form>
+
+        <div id="resultado"></div>
+        <div id="linkRespostas"></div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        function getAudioCtx() {
+            if (!audioCtx) {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (Ctx) audioCtx = new Ctx();
+            }
+            if (audioCtx && audioCtx.state === "suspended") {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function tocarSom(freq, duracao, tipo = "triangle", delay = 0) {
+            const ctx = getAudioCtx();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = tipo;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+            gain.gain.setValueAtTime(0.08, ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duracao);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + delay);
+            osc.stop(ctx.currentTime + delay + duracao);
+        }
+
+        function somClique() {
+            tocarSom(523.25, 0.08, "triangle", 0);
+        }
+
+        function somAcerto() {
+            tocarSom(523.25, 0.12, "triangle", 0);
+            tocarSom(659.25, 0.12, "triangle", 0.09);
+            tocarSom(783.99, 0.22, "triangle", 0.18);
+        }
+
+        function somErro() {
+            tocarSom(220, 0.14, "sawtooth", 0);
+            tocarSom(164.81, 0.22, "sawtooth", 0.12);
+        }
+
+        function somVitoria() {
+            tocarSom(523.25, 0.12, "triangle", 0);
+            tocarSom(659.25, 0.12, "triangle", 0.11);
+            tocarSom(783.99, 0.12, "triangle", 0.22);
+            tocarSom(1046.5, 0.35, "triangle", 0.34);
+        }
+
+        document.querySelectorAll("label.opcao, .code-input").forEach(el => {
+            el.addEventListener("click", somClique);
+        });
+
+        function corrigir() {
+            const gabarito = {
+                q1: { tipo: "radio", resposta: "a" },
+                q2: { tipo: "text",  resposta: "spawnpista4" },
+                q3: { tipo: "radio", resposta: "a" },
+                q4: { tipo: "text",  resposta: "stop" }
+            };
+
+            let pontos = 0;
+            const total = Object.keys(gabarito).length;
+            const form = document.getElementById("quizForm");
+            let params = [];
+
+            for (const q in gabarito) {
+                const box = document.getElementById(q + "box");
+                const item = gabarito[q];
+
+                box.classList.remove("card-correto", "card-errado", "card-neutro");
+                const antigo = box.querySelector(".feedback");
+                if (antigo) antigo.remove();
+
+                let respostaAluno = "";
+                let acertou = false;
+
+                if (item.tipo === "radio") {
+                    const marcado = form.querySelector(`input[name="${q}"]:checked`);
+                    respostaAluno = marcado ? marcado.value : "nao_respondeu";
+                    acertou = respostaAluno === item.resposta;
+                } else {
+                    const inputEl = document.getElementById(q + "_input");
+                    const limpo = inputEl.value.trim().toLowerCase().replace(/[();'":]/g, "");
+                    respostaAluno = limpo === "" ? "nao_respondeu" : limpo;
+                    acertou = limpo === item.resposta;
+                }
+
+                if (acertou) pontos++;
+
+                params.push(`${q}=${encodeURIComponent(respostaAluno)}`);
+                params.push(`${q}_status=${acertou ? "correto" : "errado"}`);
+
+                const feedback = document.createElement("div");
+                feedback.classList.add("feedback");
+
+                if (respostaAluno === "nao_respondeu") {
+                    box.classList.add("card-neutro");
+                    feedback.classList.add("neutro");
+                    feedback.innerHTML = "🎵 <b>Silêncio no estúdio!</b> Você deixou essa questão sem resposta.";
+                } else if (acertou) {
+                    box.classList.add("card-correto");
+                    feedback.classList.add("correto");
+                    feedback.innerHTML = "🎉 <b>Som limpo!</b> Resposta certinha!";
+                } else {
+                    box.classList.add("card-errado");
+                    feedback.classList.add("errado");
+
+                    if (item.tipo === "radio") {
+                        let certaTexto = "";
+                        box.querySelectorAll("label input").forEach(inp => {
+                            if (inp.value === item.resposta) {
+                                certaTexto = inp.parentNode.textContent.trim();
+                            }
+                        });
+                        feedback.innerHTML = `😅 <b>Quase!</b> A resposta certa era:<br>👉 ${certaTexto}`;
+                    } else {
+                        const exibicao = q === "q2" ? "SpawnPista4" : "Stop";
+                        feedback.innerHTML = `😅 <b>Quase!</b> O código certo era: <code>${exibicao}</code>`;
+                    }
+                }
+
+                box.appendChild(feedback);
+            }
+
+            if (pontos === total) {
+                somVitoria();
+            } else if (pontos >= 2) {
+                somAcerto();
+            } else {
+                somErro();
+            }
+
+            const areaResultado = document.getElementById("resultado");
+            areaResultado.style.display = "block";
+
+            if (pontos === total) {
+                areaResultado.innerHTML = `🏆 MESTRE DO SOM & PORTAIS! (${pontos} de ${total})<br><span style="font-size:1.05rem; color:#0f172a;">Você mandou muito bem no TouchEnded e no teletransporte! 🎶🚀</span>`;
+                soltarConfetes();
+            } else if (pontos >= 2) {
+                areaResultado.innerHTML = `⚡ MANDOU BEM! (${pontos} de ${total})<br><span style="font-size:1.05rem; color:#0f172a;">Dá uma olhada nas dicas acima e tenta fazer ${total} de ${total}!</span>`;
+                soltarConfetes();
+            } else {
+                areaResultado.innerHTML = `🎧 VAMOS PRATICAR MAIS! (${pontos} de ${total})<br><span style="font-size:1.05rem; color:#0f172a;">Leia as respostas certas em vermelho e tente de novo!</span>`;
+            }
+
+            params.push(`pontos=${pontos}`);
+            params.push(`total=${total}`);
+
+            const link = window.location.origin + window.location.pathname + "?" + params.join("&");
+            const areaLink = document.getElementById("linkRespostas");
+            areaLink.style.display = "block";
+            areaLink.innerHTML = `
+                🔗 <b>Link do seu resultado:</b>
+                <a href="${link}" target="_blank" id="urlGerada">${link}</a>
+                <button type="button" class="btn-copiar" onclick="copiarLink()">📋 Copiar Link</button>
+            `;
+
+            areaResultado.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        function copiarLink() {
+            somClique();
+            const url = document.getElementById("urlGerada").textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                const btn = document.querySelector(".btn-copiar");
+                btn.textContent = "✅ Copiado!";
+                setTimeout(() => btn.textContent = "📋 Copiar Link", 2200);
+            });
+        }
+
+        function soltarConfetes() {
+            const canvas = document.getElementById("som-canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const cores = ["#ec4899", "#3b82f6", "#facc15", "#22c55e", "#8b5cf6"];
+            const pecas = Array.from({ length: 85 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 6,
+                h: Math.random() * 7 + 5,
+                vy: Math.random() * 4 + 2.5,
+                vx: (Math.random() - 0.5) * 3,
+                rot: Math.random() * 360,
+                vRot: (Math.random() - 0.5) * 8,
+                color: cores[Math.floor(Math.random() * cores.length)]
+            }));
+
+            let frames = 0;
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pecas.forEach(p => {
+                    p.y += p.vy;
+                    p.x += p.vx;
+                    p.rot += p.vRot;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                });
+                frames++;
+                if (frames < 140) {
+                    requestAnimationFrame(loop);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            loop();
+        }
+    </script>
+
+</body>
+</html>
